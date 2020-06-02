@@ -7,18 +7,31 @@ import { BehaviorSubject } from 'rxjs';
 import '@openforge/capacitor-game-services';
 import { GameServicesPlugin } from '@openforge/capacitor-game-services';
 
-const { Motion, GameServices } = Plugins;
+const { Motion } = Plugins;
+const GameServices = Plugins.GameServices as GameServicesPlugin;
+
+interface GameState {
+  score: number;
+  level: number;
+  currentActiveTileTypes: number;
+  bombPowerUps: number;
+  levelChangeScore: number;
+}
+
+const initialState: GameState = {
+  score: 0,
+  level: 1,
+  currentActiveTileTypes: 4,
+  bombPowerUps: 3,
+  levelChangeScore: 1000,
+};
 
 @Injectable({ providedIn: 'root' })
 export class GameInstanceService {
   private readonly leaderboardId = 'CgkIzPzc8d4XEAIQAQ';
 
   public gameInstance: any;
-  score = 0;
-  level = 1;
-  levelChangeScore = 1000;
-  currentActiveTileTypes = 4;
-  bombPowerUps = 3;
+  public gameState: GameState = initialState;
   powerUpEmitter$: BehaviorSubject<void> = new BehaviorSubject(null);
 
   constructor(
@@ -66,6 +79,10 @@ export class GameInstanceService {
 
   restart() {
     this.submitScore();
+    this.restartScene();
+  }
+
+  private restartScene() {
     this.score = 0;
     this.level = 1;
     this.currentActiveTileTypes = 4;
@@ -80,13 +97,13 @@ export class GameInstanceService {
       console.warn('cannot submit score of 0, make sure to call this method before resetting the score property');
       return;
     }
-    (GameServices as GameServicesPlugin).submitScore({ leaderboardId, score, });
+    GameServices.submitScore({ leaderboardId, score, });
     return;
   }
 
   public showLeaderboard(): void {
     const { leaderboardId } = this;
-    (GameServices as GameServicesPlugin).showLeaderboard({ leaderboardId });
+    GameServices.showLeaderboard({ leaderboardId });
   }
 
 }
